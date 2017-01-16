@@ -11,7 +11,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Toast;
-
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
@@ -49,7 +48,7 @@ public class getCurrentPlaces extends AppCompatActivity implements OnMapReadyCal
     private static final String KEY_LOCATION = "location";
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private static final long UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
-    private static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
+    private static final int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
     private static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS =
             UPDATE_INTERVAL_IN_MILLISECONDS / 2;
 
@@ -57,7 +56,7 @@ public class getCurrentPlaces extends AppCompatActivity implements OnMapReadyCal
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.map);
-        Log.e("In on create", "before building Api client");
+        Log.e("In on create", "111111111");
         buildGoogleApiClient();
         mGoogleApiClient.connect();
     }
@@ -81,7 +80,7 @@ public class getCurrentPlaces extends AppCompatActivity implements OnMapReadyCal
                 .addApi(Places.PLACE_DETECTION_API)
                 .build();
         createLocationRequest();
-        Log.e("in build API client","created Location request");
+        Log.e("in build API client","3333333333");
     }
 
     private void getDeviceLocation() {
@@ -89,23 +88,24 @@ public class getCurrentPlaces extends AppCompatActivity implements OnMapReadyCal
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             mLocationPermissionGranted = true;
+            Toast.makeText(getCurrentPlaces.this, "GPS IS ON", Toast.LENGTH_SHORT).show();
         } else {
             ActivityCompat.requestPermissions(this,
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
                     PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+            Toast.makeText(getCurrentPlaces.this, "Turn ON GPS", Toast.LENGTH_SHORT).show();
         }
         if (mLocationPermissionGranted) {
             mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
         }
-        Log.e("In get device location", mCurrentLocation.toString());
     }
 
     @Override
     public void onLocationChanged(Location location) {
         mCurrentLocation = location;
         Log.e("on location caheng",location.toString());
-        updateMarkers();
+        //updateMarkers();
     }
 
     @Override
@@ -131,6 +131,7 @@ public class getCurrentPlaces extends AppCompatActivity implements OnMapReadyCal
         try
         {
             Log.e("in updateLocatn UI","i try");
+            Log.e("onConnected","888888");
             if (mMap == null) {
                 return;
             }
@@ -172,22 +173,26 @@ public class getCurrentPlaces extends AppCompatActivity implements OnMapReadyCal
         mLocationRequest.setInterval(UPDATE_INTERVAL_IN_MILLISECONDS);
         mLocationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        Log.e("In cretaelocation Requ", "created Location req");
+        Log.e("In cretaelocation Requ", "22222222222222");
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         // Turn on the My Location layer and the related control on the map.
+        Log.e("onConnected","77777777");
         updateLocationUI();
+        Log.e("onConnected","9999999999");
         // Add markers for nearby places.
         updateMarkers();
+        Log.e("onConnected","11 11 11 11");
         if (mCameraPosition != null) {
             mMap.moveCamera(CameraUpdateFactory.newCameraPosition(mCameraPosition));
         } else if (mCurrentLocation != null) {
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                     new LatLng(mCurrentLocation.getLatitude(),
                             mCurrentLocation.getLongitude()), DEFAULT_ZOOM));
+            googleMap.addMarker(new MarkerOptions().position(new LatLng(mCurrentLocation.getLatitude(),mCurrentLocation.getLongitude())).title("Faizabad"));
         } else {
             Log.d("AAAA", "Current location is null. Using defaults.");
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
@@ -201,9 +206,10 @@ public class getCurrentPlaces extends AppCompatActivity implements OnMapReadyCal
         // Build the map.
         MapFragment mapFragment = (MapFragment) getFragmentManager()
                 .findFragmentById(R.id.map_layout);
+        Log.e("onConnected","5555555555");
         mapFragment.getMapAsync(this);
+        Log.e("onConnected","66666666");
     }
-
 
     @Override
     public void onConnectionSuspended(int i) {
@@ -225,13 +231,14 @@ public class getCurrentPlaces extends AppCompatActivity implements OnMapReadyCal
     }
 
     private void updateMarkers() {
+        Log.e("onConnected","10101010");
         if (mMap == null) {
             return;
         }
-
         if (mLocationPermissionGranted) {
             // Get the businesses and other points of interest located
             // nearest to the device's current location.
+            Log.e("PERMISSION GRANTED","GEtting other places nearby");
             @SuppressWarnings("MissingPermission")
             PendingResult<PlaceLikelihoodBuffer> result = Places.PlaceDetectionApi
                     .getCurrentPlace(mGoogleApiClient, null);
@@ -241,16 +248,17 @@ public class getCurrentPlaces extends AppCompatActivity implements OnMapReadyCal
                     for (PlaceLikelihood placeLikelihood : likelyPlaces) {
                         // Add a marker for each place near the device's current location, with an
                         // info window showing place information.
+                        Log.e("The list is : ",placeLikelihood.getPlace().getName().toString());
                         String attributions = (String) placeLikelihood.getPlace().getAttributions();
                         String snippet = (String) placeLikelihood.getPlace().getAddress();
                         if (attributions != null) {
                             snippet = snippet + "\n" + attributions;
                         }
-
                         mMap.addMarker(new MarkerOptions()
                                 .position(placeLikelihood.getPlace().getLatLng())
                                 .title((String) placeLikelihood.getPlace().getName())
                                 .snippet(snippet));
+                        mMap.addMarker(new MarkerOptions().position(new LatLng(mCurrentLocation.getLatitude(),mCurrentLocation.getLongitude())).title("Faizabad"));
                     }
                     // Release the place likelihood buffer.
                     likelyPlaces.release();
